@@ -36,7 +36,7 @@ class OlgeFeatures:
         return self.features
     
     def _read_table(self):
-        data = pd.read_table(self.file_path,sep='\s+',names=['time','mag','err'])
+        data = pd.read_table(self.file_path,sep = '\\s+',names=['time','mag','err'])
         return data.iloc[:,0],data.iloc[:,1]
 
     def _lomb_scargle(self):
@@ -254,7 +254,7 @@ class AstroDataFeatures:
         file format: object.dat time mag err
         return: time, mag
         """
-        data = pd.read_table(self.path,sep='\s+',names=['time','mag','err'])
+        data = pd.read_table(self.path,sep='\\s+',names=['time','mag','err'])
         return data.iloc[:,0],data.iloc[:,1]
     
 
