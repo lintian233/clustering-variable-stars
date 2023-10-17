@@ -173,9 +173,9 @@ class AstroDataFeatures:
         INIT all features
         """
         self.time, self.mag = self._read_table()
-        
+
         # 创建线程池
-        with cf.ThreadPoolExecutor() as executor:
+        with cf.ThreadPoolExecutor(max_workers = 4 ) as executor:
             periodogram_features = executor.submit(self.thread_worker, self._generate_periodogram_features)
             huber_mean = executor.submit(self.thread_worker, self._huber_mean, self.time, self.mag)
             mad = executor.submit(self.thread_worker, self._mad, self.mag)
