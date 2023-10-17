@@ -2,6 +2,14 @@ import astrofeatures as AF
 import concurrent.futures as cf
 import numpy as np
 import os
+import argparse as ap
+
+
+def get_args():
+
+    parser = ap.ArgumentParser(description="Read data from dataset")
+    parser.add_argument("-c", "--class_name", type=str, help="Class name")
+    return parser.parse_args()
 
 def get_features(filepath):
     return AF.AstroDataFeatures(filepath).INIT()
@@ -72,4 +80,7 @@ def Read(class_name: str):
     print(f"{class_name} save done!")
 
 if __name__ == '__main__':
-    Read("MIRA")
+    args = get_args()
+    class_name = args.class_name
+    Read(class_name)
+
