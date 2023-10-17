@@ -175,7 +175,7 @@ class AstroDataFeatures:
         self.time, self.mag = self._read_table()
 
         # 创建线程池
-        with cf.ThreadPoolExecutor(max_workers = 4 ) as executor:
+        with cf.ThreadPoolExecutor() as executor:
             periodogram_features = executor.submit(self.thread_worker, self._generate_periodogram_features)
             huber_mean = executor.submit(self.thread_worker, self._huber_mean, self.time, self.mag)
             mad = executor.submit(self.thread_worker, self._mad, self.mag)
@@ -196,7 +196,7 @@ class AstroDataFeatures:
             robust_kurtosis = executor.submit(self.thread_worker, self._robust_kurtosis, self.mag)
             robust_kurtosis_excess = executor.submit(self.thread_worker, self._robust_kurtosis_excess, self.mag)
             abbe = executor.submit(self.thread_worker, self._abbe, self.mag)
-            regularity_of_lc_50 = executor.submit(self.thread_worker, self._regularity_of_lc, self.time, self.mag, 80)
+            regularity_of_lc_50 = executor.submit(self.thread_worker, self._regularity_of_lc, self.time, self.mag, 50)
             regularity_of_lc_100 = executor.submit(self.thread_worker, self._regularity_of_lc, self.time, self.mag, 100)
             regularity_of_lc_250 = executor.submit(self.thread_worker, self._regularity_of_lc, self.time, self.mag, 250)
             autocorrelation = executor.submit(self.thread_worker, self._autocorrelation, self.mag)
@@ -566,11 +566,12 @@ class AstroDataFeatures:
         abbe_value = np.zeros(end - first + 1)
         for i in range(first, end):
             indexes = np.where((x > x[i] - 0.5 * window_size) & (x < x[i] + 0.5 * window_size))
+            if(len(indexes[0]) < 5):
+                continue    
             y_window = y[indexes[0]]
             abbe_value[i - first] = self._abbe(y_window)
-        
-        abbe_mean = np.mean(abbe_value)
-
+        ab_remove_zero = abbe_value[abbe_value != 0]
+        abbe_mean = np.mean(ab_remove_zero)
         return abbe_mean - self._abbe(y)
 
     
