@@ -11,7 +11,7 @@ from statsmodels import robust
 import statsmodels.stats.stattools as stats
 from scipy.optimize import curve_fit
 from scipy.linalg import eigh
-
+import concurrent.futures as cf
 class OlgeFeatures:
     def __init__(self,path) -> None:
         self.file_path = path
@@ -159,47 +159,90 @@ class AstroDataFeatures:
         # self.log10_fit_residual_raw_iqr_lc = None
         # self.abbe_of_harmonic_fit_lc = None
         self.features = None
+
+    def thread_worker(self, func, *args):
+        if len(args) == 0:
+            return func()
         
+        result = func(*args)
+        return result
 
     def INIT(self):
 
         """
         INIT all features
         """
-    
         self.time, self.mag = self._read_table()
-        periodogram_features = self._generate_periodogram_features()
-        huber_mean = self._huber_mean(self.time, self.mag)
-        mad = self._mad(self.mag)
-        iqr_q31 = self._iqr_q31(self.mag)
-        q31_robust_mean = self._q31_robust_mean(self.time, self.mag)
-        q955_minus = self._q955_minus(self.mag)
-        range_cumsum = self._range_cumsum(self.mag)
-        percentage_beyond_sigma = self._percentage_beyond_sigma(self.mag)
-        percent_of_meadian_range_1_over_10 = self._percent_of_meadian_range_1_over_10(self.mag)
-        largest_percentage_difference = self._largest_percentage_difference(self.mag)
-        mag_3rd_fraction = self._mag_3rd_fraction(self.mag)
-        median_based_skew = self._median_based_skew(self.mag)
-        flux_percentile_ratio_mid20 = self._flux_percentile_ratio_mid20(self.mag)
-        flux_percentile_ratio_mid35 = self._flux_percentile_ratio_mid35(self.mag)
-        flux_percentile_ratio_mid50 = self._flux_percentile_ratio_mid50(self.mag)
-        flux_percentile_ratio_mid65 = self._flux_percentile_ratio_mid65(self.mag)
-        flux_percentile_ratio_mid80 = self._flux_percentile_ratio_mid80(self.mag)
-        robust_kurtosis = self._robust_kurtosis(self.mag)
-        robust_kurtosis_excess = self._robust_kurtosis_excess(self.mag)
-        abbe = self._abbe(self.mag)
-        regularity_of_lc_50 = self._regularity_of_lc(self.time, self.mag, 80)
-        regularity_of_lc_100 = self._regularity_of_lc(self.time, self.mag, 100)
-        regularity_of_lc_250 = self._regularity_of_lc(self.time, self.mag, 250)
-        autocorrelation = self._autocorrelation(self.mag)
+        
+        # 创建线程池
+        with cf.ThreadPoolExecutor() as executor:
+            periodogram_features = executor.submit(self.thread_worker, self._generate_periodogram_features)
+            huber_mean = executor.submit(self.thread_worker, self._huber_mean, self.time, self.mag)
+            mad = executor.submit(self.thread_worker, self._mad, self.mag)
+            iqr_q31 = executor.submit(self.thread_worker, self._iqr_q31, self.mag)
+            q31_robust_mean = executor.submit(self.thread_worker, self._q31_robust_mean, self.time, self.mag)
+            q955_minus = executor.submit(self.thread_worker, self._q955_minus, self.mag)
+            range_cumsum = executor.submit(self.thread_worker, self._range_cumsum, self.mag)
+            percentage_beyond_sigma = executor.submit(self.thread_worker, self._percentage_beyond_sigma, self.mag)
+            percent_of_meadian_range_1_over_10 = executor.submit(self.thread_worker, self._percent_of_meadian_range_1_over_10, self.mag)
+            largest_percentage_difference = executor.submit(self.thread_worker, self._largest_percentage_difference, self.mag)
+            mag_3rd_fraction = executor.submit(self.thread_worker, self._mag_3rd_fraction, self.mag)
+            median_based_skew = executor.submit(self.thread_worker, self._median_based_skew, self.mag)
+            flux_percentile_ratio_mid20 = executor.submit(self.thread_worker, self._flux_percentile_ratio_mid20, self.mag)
+            flux_percentile_ratio_mid35 = executor.submit(self.thread_worker, self._flux_percentile_ratio_mid35, self.mag)
+            flux_percentile_ratio_mid50 = executor.submit(self.thread_worker, self._flux_percentile_ratio_mid50, self.mag)
+            flux_percentile_ratio_mid65 = executor.submit(self.thread_worker, self._flux_percentile_ratio_mid65, self.mag)
+            flux_percentile_ratio_mid80 = executor.submit(self.thread_worker, self._flux_percentile_ratio_mid80, self.mag)
+            robust_kurtosis = executor.submit(self.thread_worker, self._robust_kurtosis, self.mag)
+            robust_kurtosis_excess = executor.submit(self.thread_worker, self._robust_kurtosis_excess, self.mag)
+            abbe = executor.submit(self.thread_worker, self._abbe, self.mag)
+            regularity_of_lc_50 = executor.submit(self.thread_worker, self._regularity_of_lc, self.time, self.mag, 80)
+            regularity_of_lc_100 = executor.submit(self.thread_worker, self._regularity_of_lc, self.time, self.mag, 100)
+            regularity_of_lc_250 = executor.submit(self.thread_worker, self._regularity_of_lc, self.time, self.mag, 250)
+            autocorrelation = executor.submit(self.thread_worker, self._autocorrelation, self.mag)
+            stetson_k_for_mag = executor.submit(self.thread_worker, self._stetson_k_for_mag, self.mag)
+            rcs_to_phase_lc = executor.submit(self.thread_worker, self._rcs_to_phase_lc, self.time, self.mag)
+            p2p_scatter = executor.submit(self.thread_worker, self._p2p_scatter, self.time, self.mag)
+            variability_index_of_lc = executor.submit(self.thread_worker, self._variability_index_of_lc, self.time, self.mag)
+            logp = executor.submit(self.thread_worker, self._logP, self.time, self.mag)
+            fit = executor.submit(self.thread_worker, self._amp_ph_of_harmonic_fit_lc, self.time, self.mag)
+        
+        periodogram_features = periodogram_features.result()
+        huber_mean = huber_mean.result()
+        mad = mad.result()
+        iqr_q31 = iqr_q31.result()
+        q31_robust_mean = q31_robust_mean.result()
+        q955_minus = q955_minus.result()
+        range_cumsum = range_cumsum.result()
+        percentage_beyond_sigma = percentage_beyond_sigma.result()
+        percent_of_meadian_range_1_over_10 = percent_of_meadian_range_1_over_10.result()
+        largest_percentage_difference = largest_percentage_difference.result()
+        mag_3rd_fraction = mag_3rd_fraction.result()
+        median_based_skew = median_based_skew.result()
+        flux_percentile_ratio_mid20 = flux_percentile_ratio_mid20.result()
+        flux_percentile_ratio_mid35 = flux_percentile_ratio_mid35.result()
+        flux_percentile_ratio_mid50 = flux_percentile_ratio_mid50.result()
+        flux_percentile_ratio_mid65 = flux_percentile_ratio_mid65.result()
+        flux_percentile_ratio_mid80 = flux_percentile_ratio_mid80.result()
+        robust_kurtosis = robust_kurtosis.result()
+        robust_kurtosis_excess = robust_kurtosis_excess.result()
+        abbe = abbe.result()
+        regularity_of_lc_50 = regularity_of_lc_50.result()
+        regularity_of_lc_100 = regularity_of_lc_100.result()
+        regularity_of_lc_250 = regularity_of_lc_250.result()
+        autocorrelation = autocorrelation.result()
         stetson_k_for_autocor = self._stetson_k_for_autocor(autocorrelation)
-        stetson_k_for_mag = self._stetson_k_for_mag(self.mag)
-        rcs_to_phase_lc = self._rcs_to_phase_lc(self.time, self.mag)
-        p2p_scatter = self._p2p_scatter(self.time, self.mag)
-        variability_index_of_lc = self._variability_index_of_lc(self.time, self.mag)
-        logp = self._logP(self.time, self.mag)
-        ampij, phij, fitting_mag, harmonic_mag = self._amp_ph_of_harmonic_fit_lc(self.time, self.mag)
+        stetson_k_for_mag = stetson_k_for_mag.result()
+        rcs_to_phase_lc = rcs_to_phase_lc.result()
+        p2p_scatter = p2p_scatter.result()
+        variability_index_of_lc = variability_index_of_lc.result()
+        logp = logp.result()
+        ampij = fit.result()[0]
+        phij = fit.result()[1]
+        fitting_mag = fit.result()[2]
+        harmonic_mag = fit.result()[3]
         log10_harmonic_amplitude_ratio = self._log10_harmonic_amplitude_ratio(ampij)
+
         log10_fit_residual_raw_iqr_lc = self._log10_fit_residual_raw_iqr_lc(self.mag, fitting_mag)
         abbe_of_harmonic_fit_lc = self._abbe_of_residuals_har_fit(self.mag, harmonic_mag, fitting_mag)
 
@@ -246,10 +289,6 @@ class AstroDataFeatures:
                                         
         return self.features
 
-
-        
-
-    
     def _read_table(self):
         """
         Read the data from the file
