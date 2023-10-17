@@ -65,7 +65,7 @@ def Read(class_name: str):
     print(f"Reading {class_name} data...")
     dataset = read_ocvs_data(r"datasets/OCVS")
     class_num = [i for i in dataset.keys()].index(class_name)
-    data_arr_path = dataset[class_name][0:2]
+    data_arr_path = dataset[class_name]
 
     print(f"{class_name} data num: {len(data_arr_path)}")
     
