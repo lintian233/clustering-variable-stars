@@ -94,6 +94,8 @@ class OlgeFeatures:
         q3 = np.percentile(array, 75)
         iqr = q1 - q3
         med = np.median(array)
+        if (iqr == 0):
+            iqr = 1
         normalized_arr = (array - med) / iqr
         return normalized_arr
     
@@ -466,7 +468,7 @@ class AstroDataFeatures:
         """
         Robust kurtosis measure based on Stetson variability index
         基于Stetson可变性指数的健壮峰度测量
-        kurtosis_measures是一个包含四个峰度测量值的元组：
+        kurtosis_measures是一个包含四个峰度测量值的元组:
         kr1: 标准峰度估计器
         kr2: 基于八分位数的峰度估计器
         kr3: 基于超过期望值的峰度估计器
