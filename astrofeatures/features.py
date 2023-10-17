@@ -57,8 +57,8 @@ class OlgeFeatures:
         pass
 
     def _get_indexof_log_span(self, data, bin):
-        log_end = np.log10(data[-1] - data[10])
-        log_start =np.log10(data[40])
+        log_end = np.log10(data[-1] - data[1000])
+        log_start =np.log10(data[1000])
         log_step = (log_end - log_start) / bin
 
         value_arr = np.array([(10 ** (log_start + i * log_step)) for i in range(1,bin + 1)])

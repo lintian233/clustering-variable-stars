@@ -1,5 +1,7 @@
 import astrofeatures as AF
 import concurrent.futures as cf
+import numpy as np
+import os
 
 def get_features(filepath):
     return AF.AstroDataFeatures(filepath).INIT()
@@ -48,14 +50,26 @@ def read_class_data(path_array, class_num):
 
 def save_npy(arr, class_label, class_name):
     np.save(f"./npy_data/{class_name}_data.npy", arr)
-    np.save(f"./npy_data/{class_name}_label.npy", class_label)
+    np.save(f"./npy_data/{class_name}_labels.npy", class_label)
 
+
+def Read(class_name: str):
+    print(f"Reading {class_name} data...")
+    dataset = read_ocvs_data(r"datasets/OCVS")
+    class_num = [i for i in dataset.keys()].index(class_name)
+    data_arr_path = dataset[class_name][0:2]
+
+    print(f"{class_name} data num: {len(data_arr_path)}")
+    
+    data_arr, class_label = read_class_data(data_arr_path, class_num)
+    
+    print(f"{class_name} read done!")
+    print(f"{class_name} data shape: {data_arr.shape}")
+
+    print(f"Saving {class_name} data...")
+    
+    save_npy(data_arr, class_label, class_name)
+    print(f"{class_name} save done!")
 
 if __name__ == '__main__':
-    dataset = read_ocvs_data(r"datasets/OCVS")
-    class_num =[i for i in range(len(dataset.keys()))]
-    for i in class_num:
-        for class_name, path_arr in dataset.items():
-            arr, class_label = read_class_data(path_arr, i)
-            print(arr.shape)
-            save_npy(arr, class_label, class_name)
+    Read("MIRA")
