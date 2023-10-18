@@ -13,6 +13,6 @@
     "cluster_selection_epsilon": 0.1,
     "cluster_selection_method": "eom",
 
-    "visual_size": 0.1
+    "node_size": 0.2
 
 }

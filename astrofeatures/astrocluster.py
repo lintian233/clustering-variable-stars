@@ -110,55 +110,84 @@ class Astrocluster:
             color = sns.color_palette("Spectral", as_cmap=True)(i/len(index))
             if i == 0:
                 sc = ax.scatter(data[:index[i],0],data[:index[i],1],
-                                label=class_name[i],s=0.5,color=color)
+                                label=class_name[i],s=self.config.node_size,color=color)
             else:
                 ax.scatter(data[index[i-1]:index[i],0],data[index[i-1]:index[i],1],
-                        label=class_name[i],s=0.5, color=color)
+                        label=class_name[i],s=self.config.node_size, color=color)
         ax.legend()
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_ylabel("")
         ax.set_xlabel("")
         sns.despine(left=True, right=True, top=True, bottom=True)
-        plt.savefig("../result/visual/umap_2d.png")
+        plt.savefig("../result/visual/umap_origin.png")
         #plt.show()
 
-    def scatter_all(self):
+    def scatter_all(self, mode = 'cluster'):
         data = self.visual_data
-        labels = self.labels
-        class_name = self.class_name
-        cluster_labels = self.predicted_labels
+        node = self.config.node_size
+        
+        # mode == default : cluster
+        class_name = np.unique(self.predicted_labels)
+        labels = self.predicted_labels
+        
+        if mode == 'origin':
+            class_name = self.class_name
+            labels = self.labels
 
-        fig, axes = plt.subplots(4, 5, figsize=(15, 10),dpi=400)
+        if mode == 'compare':
+            class_name = self.class_name
+            labels = self.predicted_labels
+
+        #sns.set_style("dark")
+        length = len(class_name)
+        _row = 4
+        r =  np.mod(length , _row)
+        col = int(length / _row)
+        if r != 0:
+            col += 1
+        currenti = 0
+        print(f"row : {_row}, col : {col}")
+        fig, axes = plt.subplots(_row, col, figsize=(15, 10), dpi=400)
         for i in range(len(class_name)):
-            j = np.mod(i,5)
-            row = int(i/5)
-            index  = np.where(labels==i) 
-            sns_emb = pd.DataFrame(data,columns=['x','y'])
-            sns_emb['cluster'] = cluster_labels
-            sns_emb['True_label'] = labels
+            currenti = i
+            j = np.mod(i, col)
+            
+            row = int( i / col )
+            
+            all_data = pd.DataFrame(data,columns=['x','y'])
+            index = np.where(labels == class_name[i])
+            if (mode == 'compare') or (mode == 'origin'):
+                index = np.where(labels==i)
+            
 
-            sns_emb_sub = pd.DataFrame(data[index],columns=['x','y'])
-            sns_emb_sub['cluster'] = cluster_labels[index]
-            sns_emb_sub['True_label'] = labels[index]
-            # axes[].scatterplot(x='x',y='y',data=sns_emb,s=2,color='grey')
-            # axes.scatterplot(x='x',y='y',hue='cluster',data=sns_emb_sub,s=3,palette='Set1')
-            sns.scatterplot(x='x',y='y',data=sns_emb,s=1,color='grey',ax=axes[row,j],legend=False)
-            sns.scatterplot(x='x',y='y',hue='cluster',data=sns_emb_sub,s=1,ax=axes[row,j],
-                            legend=False,palette='Spectral')
+            spec_data = pd.DataFrame(data[index],columns=['x','y'])
+            sns.scatterplot(x='x', y='y', data=all_data, s=node,
+                            color='grey', ax=axes[row,j], legend=False)
+            
+            sns.scatterplot(x='x', y='y', data=spec_data, s=node,
+                            ax=axes[row,j], c='cyan', legend=False)
+
             sns.despine(left=True, right=True, top=True, bottom=True)
             axes[row,j].set_title(class_name[i])
             axes[row,j].set_xticks([])
             axes[row,j].set_yticks([])
             axes[row,j].set_xlabel('')
             axes[row,j].set_ylabel('')
+
+        if currenti < (_row*col - 1):
+            for i in range(currenti+1,(_row*col)):
+                j = np.mod(i, col)
+                row = int( i / col )
+                axes[row,j].set_visible(False)
+
         plt.subplots_adjust(wspace=0.1, hspace=0.1)
-        plt.savefig("../result/visual/umap_2d_all.png")
-        #plt.tight_layout()
+        plt.savefig(f"../result/visual/scatter_all_{mode}.png")
         
     def visualize_cluster_umap(self):
         labels = self.predicted_labels
         data = self.visual_data
+        node_size = self.config.node_size
 
 
         num = np.unique(labels)
@@ -167,14 +196,16 @@ class Astrocluster:
         for i in range (len(num)):
             index = np.where(labels==num[i])
             colors = sns.color_palette("Spectral", as_cmap=True)((i)/len(num))
-            ax.scatter(data[index,0],data[index,1],s=0.2,label=num[i],color=colors)
+            ax.scatter(data[index,0], data[index,1], s=node_size, label=num[i], color=colors)
+
+
         ax.legend(handles=squares,labels=num)
         sns.despine(left=True, right=True, top=True, bottom=True)
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_ylabel("")
         ax.set_xlabel("")
-        plt.savefig("../result/visual/umap_2d_predict.png")
+        plt.savefig("../result/visual/umap_cluster.png")
         #plt.show()
 
 
