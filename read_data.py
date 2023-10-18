@@ -6,10 +6,10 @@ import argparse as ap
 
 
 def get_args():
-
     parser = ap.ArgumentParser(description="Read data from dataset")
     parser.add_argument("-c", "--class_name", type=str, help="Class name")
     return parser.parse_args()
+
 
 def get_features(filepath):
     return AF.AstroDataFeatures(filepath).INIT()
@@ -34,16 +34,17 @@ def read_ocvs_data(datasetpath):
 
     class_dir = list_dir_of_path(datasetpath)
     for class_name in class_dir:
-      dir_path = os.path.join(datasetpath,class_name)
-      sub_class_name = list_dir_of_path(dir_path)      
-      for sub_class in sub_class_name:
-        subdir_path = os.path.join(dir_path,sub_class)
-        I_data_path = os.path.join(subdir_path,"I")
-        I_file_list = os.listdir(I_data_path)
-        I_file_list_path = [os.path.join(I_data_path, f) for f in I_file_list]
-        dataset[sub_class] = I_file_list_path
+        dir_path = os.path.join(datasetpath, class_name)
+        sub_class_name = list_dir_of_path(dir_path)
+        for sub_class in sub_class_name:
+            subdir_path = os.path.join(dir_path, sub_class)
+            I_data_path = os.path.join(subdir_path, "I")
+            I_file_list = os.listdir(I_data_path)
+            I_file_list_path = [os.path.join(I_data_path, f) for f in I_file_list]
+            dataset[sub_class] = I_file_list_path
 
     return dataset
+
 
 def read_class_data(path_array, class_num):
     arr = np.zeros((len(path_array), 143), dtype=np.float64)
@@ -52,9 +53,10 @@ def read_class_data(path_array, class_num):
 
     for i, result in enumerate(results):
         arr[i] = result
-    
+
     class_label = np.array([class_num] * len(path_array))
     return arr, class_label
+
 
 def save_npy(arr, class_label, class_name):
     np.save(f"./npy_data/{class_name}_data.npy", arr)
@@ -68,19 +70,19 @@ def Read(class_name: str):
     data_arr_path = dataset[class_name]
 
     print(f"{class_name} data num: {len(data_arr_path)}")
-    
+
     data_arr, class_label = read_class_data(data_arr_path, class_num)
-    
+
     print(f"{class_name} read done!")
     print(f"{class_name} data shape: {data_arr.shape}")
 
     print(f"Saving {class_name} data...")
-    
+
     save_npy(data_arr, class_label, class_name)
     print(f"{class_name} save done!")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     args = get_args()
     class_name = args.class_name
     Read(class_name)
-
