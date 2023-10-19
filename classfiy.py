@@ -1,11 +1,4 @@
 #!/usr/bin/env python
-"""
-Example of using the hierarchical classifier to classify (a subset of) the digits data set.
-
-Demonstrated some of the capabilities, e.g using a Pipeline as the base estimator,
-defining a non-trivial class hierarchy, etc.
-
-"""
 import torch
 import numpy as np
 from sklearn import svm
