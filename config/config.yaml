@@ -1,0 +1,31 @@
+cluster_config:
+    # Path to the data folder
+    data_path: "./npy_data/"
+
+    n_neighbors: 30
+    n_components: 20
+    min_dist: 0
+    target_weight: 0.5
+    ifscale: 1
+
+    min_cluster_size: 50
+    min_samples: 10
+    cluster_selection_epsilon: 0.1
+    cluster_selection_method: "eom"
+
+    node_size: 0.2 
+
+classfiy_config:
+
+    random_state : 42
+
+    kernel : "rbf"
+    C : 100
+    gamma : 0.01
+
+
+    n_components : 20
+
+    ifgridsearch : 0
+    cv : 5
+    n_jobs : 10

@@ -10,6 +10,7 @@ import umap
 import json
 import subprocess
 import hdbscan
+import yaml
 
 
 class Config:
@@ -19,25 +20,22 @@ class Config:
     def instance(cls):
         if cls._instance is None:
             cls._instance = cls()
-            cls._instance._load_parameters()
-            cls._instance._openai_init()
+            path = os.path.join("./", "config/config.yaml")
+            cls._instance._load_parameters(path)
 
         return cls._instance
 
-    def _load_parameters(self):
-        config_file_path = r"../config/cluster_config.json"
+    def _load_parameters(self, path):
+        config_file_path = path
         with open(config_file_path, "r") as f:
-            config = json.load(f)
+            config = yaml.load(f, Loader=yaml.Loader)
         self.__dict__.update(config)
-
-    def _openai_init(self):
-        config = Config.instance()
 
 
 class Astrocluster:
     def __init__(self):
-        self.config = Config.instance()
-        self.path = os.path.join("../", self.config.data_path)
+        self.config = Config.instance().cluster_config
+        self.path = os.path.join("./", self.config["data_path"])
 
         self.data = None
         self.class_name = None
@@ -47,27 +45,27 @@ class Astrocluster:
         self.labels = None
 
         self.index = None
-        self.ifscale = self.config.ifscale
+        self.ifscale = self.config["ifscale"]
 
         self.reducer_visual = umap.UMAP(
-            n_neighbors=self.config.n_neighbors,
-            min_dist=self.config.min_dist,
+            n_neighbors=self.config["n_neighbors"],
+            min_dist=self.config["min_dist"],
             n_components=2,
             tqdm_kwds={"disable": True},
         )
 
         self.reducer_traning = umap.UMAP(
-            n_neighbors=self.config.n_neighbors,
-            min_dist=self.config.min_dist,
-            n_components=self.config.n_components,
+            n_neighbors=self.config["n_neighbors"],
+            min_dist=self.config["min_dist"],
+            n_components=self.config["n_components"],
             tqdm_kwds={"disable": True},
         )
 
         self.hdbscan_cluster = hdbscan.HDBSCAN(
-            min_cluster_size=self.config.min_cluster_size,
-            min_samples=self.config.min_samples,
-            cluster_selection_epsilon=self.config.cluster_selection_epsilon,
-            cluster_selection_method=self.config.cluster_selection_method,
+            min_cluster_size=self.config["min_cluster_size"],
+            min_samples=self.config["min_samples"],
+            cluster_selection_epsilon=self.config["cluster_selection_epsilon"],
+            cluster_selection_method=self.config["cluster_selection_method"],
         )
 
         self.predicted_labels = None
@@ -78,8 +76,17 @@ class Astrocluster:
         self.__reduce_to_2d()
         self.__reduce_to_20d()
         self.__hdbscan_cluster()
+        self.__save_data("./result/umap_cluster/")
 
         return self
+
+    def __save_data(self, path):
+        np.save(os.path.join(path, "raw_data.npy"), self.data)
+        np.save(os.path.join(path, "true_labels.npy"), self.labels)
+        np.save(os.path.join(path, "class_labels"), self.class_name)
+        np.save(os.path.join(path, "umap_visual_data.npy"), self.visual_data)
+        np.save(os.path.join(path, "umap_20d_data.npy"), self.traning_data)
+        np.save(os.path.join(path, "hdbscan_cluster_labels.npy"), self.predicted_labels)
 
     def __load_data(self, path):
         file_name = []
@@ -118,7 +125,7 @@ class Astrocluster:
                     data[: index[i], 0],
                     data[: index[i], 1],
                     label=class_name[i],
-                    s=self.config.node_size,
+                    s=self.config["node_size"],
                     color=color,
                 )
             else:
@@ -126,7 +133,7 @@ class Astrocluster:
                     data[index[i - 1] : index[i], 0],
                     data[index[i - 1] : index[i], 1],
                     label=class_name[i],
-                    s=self.config.node_size,
+                    s=self.config["node_size"],
                     color=color,
                 )
         ax.legend()
@@ -135,12 +142,12 @@ class Astrocluster:
         ax.set_ylabel("")
         ax.set_xlabel("")
         sns.despine(left=True, right=True, top=True, bottom=True)
-        plt.savefig("../result/visual/umap_origin.png")
+        plt.savefig("./result/visual/umap_origin.png")
         # plt.show()
 
     def scatter_all(self, mode="cluster"):
         data = self.visual_data
-        node = self.config.node_size
+        node = self.config["node_size"]
 
         # mode == default : cluster
         class_name = np.unique(self.predicted_labels)
@@ -210,12 +217,12 @@ class Astrocluster:
                 axes[row, j].set_visible(False)
 
         plt.subplots_adjust(wspace=0.1, hspace=0.1)
-        plt.savefig(f"../result/visual/scatter_all_{mode}.png")
+        plt.savefig(f"./result/visual/scatter_all_{mode}.png")
 
     def visualize_cluster_umap(self):
         labels = self.predicted_labels
         data = self.visual_data
-        node_size = self.config.node_size
+        node_size = self.config["node_size"]
 
         num = np.unique(labels)
         fig, ax = plt.subplots(figsize=(12, 10), dpi=400)
@@ -233,7 +240,7 @@ class Astrocluster:
         ax.set_yticks([])
         ax.set_ylabel("")
         ax.set_xlabel("")
-        plt.savefig("../result/visual/umap_cluster.png")
+        plt.savefig("./result/visual/umap_cluster.png")
         # plt.show()
 
     def __reduce_to_2d(self):
