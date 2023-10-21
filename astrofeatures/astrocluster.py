@@ -2,6 +2,8 @@ import numpy as np
 from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+import matplotlib.animation as animation
+import imageio
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -69,6 +71,8 @@ class Astrocluster:
         )
 
         self.predicted_labels = None
+        self.C_class = None
+        self.purity = None
 
     def INIT(self):
         self.__load_data(self.path)
@@ -76,6 +80,7 @@ class Astrocluster:
         self.__reduce_to_2d()
         self.__reduce_to_20d()
         self.__hdbscan_cluster()
+        self.__calculate_purity()
         self.__save_data("./result/umap_cluster/")
 
         return self
@@ -117,6 +122,8 @@ class Astrocluster:
         class_name = self.class_name
 
         fig, ax = plt.subplots(figsize=(12, 10), dpi=400)
+        fig.patch.set_facecolor('black')
+        ax.set_facecolor('black')
 
         for i in range(len(index)):
             color = sns.color_palette("Spectral", as_cmap=True)(i / len(index))
@@ -145,6 +152,75 @@ class Astrocluster:
         plt.savefig("./result/visual/umap_origin.png")
         # plt.show()
 
+    def scatter_gif(self,mode ="cluster"):
+        data = self.visual_data
+        node = self.config["node_size"]
+
+        # mode == default : cluster
+        class_name = np.unique(self.predicted_labels)
+        labels = self.predicted_labels
+
+        if mode == "origin":
+            class_name = self.class_name
+            labels = self.labels
+
+        if mode == "compare":
+            class_name = self.class_name
+            labels = self.predicted_labels
+
+        def update(i):
+            fig, ax = plt.subplots(figsize=(12, 8), dpi=200)
+            fig.patch.set_facecolor('black')
+            ax.set_facecolor('black')
+            all_data = pd.DataFrame(data, columns=["x", "y"])
+            index = np.where(labels == class_name[i])
+            if (mode == "compare") or (mode == "origin"):
+                index = np.where(labels == i)
+
+            spec_data = pd.DataFrame(data[index], columns=["x", "y"])
+            sns.scatterplot(
+                x="x",
+                y="y",
+                data=all_data,
+                s=node,
+                color="grey",
+                legend=False,
+                ax=ax
+            )
+
+            sns.scatterplot(
+                x="x",
+                y="y",
+                data=spec_data,
+                s=node,
+                c="cyan",
+                legend=False,
+                ax=ax
+            )
+
+            sns.despine(left=True, right=True, top=True, bottom=True)
+            ax.set_title(class_name[i], fontsize=20, color="white")
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_xlabel("")
+            ax.set_ylabel("")
+
+            plt.savefig(f"./result/visual/temp/{class_name[i]}.png")
+            plt.close(fig)
+
+        for i in range(len(class_name)):
+            update(i)
+
+        images = []
+        for i in range(len(class_name)):
+            images.append(imageio.imread(f"./result/visual/temp/{class_name[i]}.png"))
+
+        imageio.mimsave(f"./result/visual/scatter_all_{mode}.gif", images, fps=1)
+
+
+
+
+        
     def scatter_all(self, mode="cluster"):
         data = self.visual_data
         node = self.config["node_size"]
@@ -171,6 +247,7 @@ class Astrocluster:
         currenti = 0
         print(f"row : {_row}, col : {col}")
         fig, axes = plt.subplots(_row, col, figsize=(15, 10), dpi=400)
+        fig.patch.set_facecolor('black')
         for i in range(len(class_name)):
             currenti = i
             j = np.mod(i, col)
@@ -183,6 +260,8 @@ class Astrocluster:
                 index = np.where(labels == i)
 
             spec_data = pd.DataFrame(data[index], columns=["x", "y"])
+
+            axes[row,j].set_facecolor('black')
             sns.scatterplot(
                 x="x",
                 y="y",
@@ -204,7 +283,7 @@ class Astrocluster:
             )
 
             sns.despine(left=True, right=True, top=True, bottom=True)
-            axes[row, j].set_title(class_name[i])
+            axes[row, j].set_title(class_name[i],color="white")
             axes[row, j].set_xticks([])
             axes[row, j].set_yticks([])
             axes[row, j].set_xlabel("")
@@ -218,7 +297,6 @@ class Astrocluster:
 
         plt.subplots_adjust(wspace=0.1, hspace=0.1)
         plt.savefig(f"./result/visual/scatter_all_{mode}.png")
-
     def visualize_cluster_umap(self):
         labels = self.predicted_labels
         data = self.visual_data
@@ -226,6 +304,9 @@ class Astrocluster:
 
         num = np.unique(labels)
         fig, ax = plt.subplots(figsize=(12, 10), dpi=400)
+        fig.patch.set_facecolor('black')
+        ax.set_facecolor('black')
+
         squares = []
         for i in range(len(num)):
             index = np.where(labels == num[i])
@@ -257,3 +338,58 @@ class Astrocluster:
 
     def __hdbscan_cluster(self):
         self.predicted_labels = self.hdbscan_cluster.fit_predict(self.traning_data)
+
+    def __calculate_purity(self):
+        labels = self.labels
+        cluster_labels = self.predicted_labels
+        class_name = self.class_name
+
+        num = np.unique(labels)
+        c_num = np.unique(cluster_labels)
+        purity = []
+        C_purity = []
+        for i in range(1, len(c_num)):
+            #N_w 是属于某个簇的个数
+            index = np.where(cluster_labels == c_num[i])
+            N_w = len(index[0])
+            C = []
+            for j in range(1, len(num)):
+                #index 是cluster_labels中属于某个簇，比如簇0的索引
+                index = np.where(cluster_labels == c_num[i])
+                #cluster_labels_sub 是属于某个簇的真实标签
+                cluster_labels_sub = labels[index]
+                #C_i 是属于某个簇的真实标签中，属于某个类别的个数
+                C_i = len(np.where(cluster_labels_sub == num[j])[0])
+                C.append(C_i)
+            C_max = np.max(C)
+            #同时给出C_max所对应的类别
+            #print(C)
+            C_max_index = np.argmax(C)
+            #print(C_max_index)
+            C_max_class = class_name[C_max_index]
+            #print(C_max_class)
+            C_purity.append(C_max_class)
+            P = (1 / N_w) * C_max
+            purity.append(P)
+        self.C_class = C_purity
+        self.purity = purity
+
+    def plot_purity(self):
+        sns.set_theme(style="ticks")
+
+        # Initialize the figure with a logarithmic x axis
+        f, ax = plt.subplots(figsize=(5, 10),dpi=400)
+        #ax.set_xscale("log")
+        ax.set_xlim(0, 1)
+
+        purity = np.array(self.purity)
+        C_purity = np.array(self.C_class)
+
+        df = pd.DataFrame({'Purity':purity,'Class':C_purity})
+
+        sns.boxplot(x="Purity", y="Class", data=df,
+                    whis=[0, 100], width=.3,color='#e0ffff',ax=ax)
+        
+        plt.savefig("./result/visual/purity.png",dpi=400,bbox_inches='tight')
+    
+    
