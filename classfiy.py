@@ -78,7 +78,7 @@ def plot_confusion_matrix(
     plt.xlabel("True label")
     # if not os.path.exists('./'+os.path.basename(__file__).replace('.py', '_image/')):
     #     os.makedirs('./'+os.path.basename(__file__).replace('.py', '_image/'))
-    plt.savefig("./result/svm/Confusion_matrix.png",dpi=400,bbox_inches='tight')
+    plt.savefig("./result/svm/Confusion_matrix.png", dpi=400, bbox_inches="tight")
 
 
 def load_umap(path):
