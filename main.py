@@ -6,17 +6,44 @@ import sys
 import argparse
 import numpy as np
 
-def get_args():
-    parser = argparse.ArgumentParser(description="cluster and classify")
-    parser.add_argument("-d", "--dataset", type=str, help="Dataset name", default="None")
-
-    return parser.parse_args()
 def print_red(text, *args, **kwargs):
     print(f"\033[31m{text}\033[0m", *args, **kwargs)
 
 def print_green(text, *args, **kwargs):
     print(f"\033[32m{text}\033[0m", *args, **kwargs)
 
+def print_bule(text, *args, **kwargs):
+    #加粗
+    print(f"\033[1;34m{text}\033[0m", *args, **kwargs)
+
+
+def print_title():
+    str = """
+                   _            __               
+ _   ______ ______(_)     _____/ /_____ ______   
+| | / / __ `/ ___/ /_____/ ___/ __/ __ `/ ___/   
+| |/ / /_/ / /  / /_____(__  ) /_/ /_/ / /      
+|___/\__,_/_/  /_/     /____/\__/\__,_/_/        
+                                                 
+     """
+    print_bule(str)
+
+    str_detail = """
+    This is a program for clustering and classifying astronomical variable stars.
+    This program is a reproduction of this paper: 
+    It is developed by lintian233.
+    github:https://github.com/lintian233/clustering-variable-stars
+    Please visit the configuration file to modify the hyperparameters when necessary.
+    Read the README.md for more information.
+    """
+
+    print_bule(str_detail)
+
+def get_args():
+    parser = argparse.ArgumentParser(description="cluster and classify")
+    parser.add_argument("-d", "--dataset", type=str, help="Dataset name", default="None")
+
+    return parser.parse_args()
 def get_class_name(datasetpath):
     class_name_list = []
     #大类别的名称
@@ -148,9 +175,11 @@ def check_result_exist_and_generate(dataset_name):
         os.mkdir(os.path.join(result_dataset_path, "visualize"))
 
 def main():
+    print_title()   
+
+    print_green("Checking dataset...")
     
     check_dir_exist()
-    
     print_green("Dataset found!")
     
     #检查是否有features
