@@ -8,8 +8,8 @@ import argparse as ap
 def get_args():
     parser = ap.ArgumentParser(description="Read data from dataset")
     parser.add_argument("-c", "--class_name", type=str, help="Class name")
+    parser.add_argument("-d", "--dataset", type=str, help="Dataset name", default="None")
     return parser.parse_args()
-
 
 def get_features(filepath):
     return AF.AstroDataFeatures(filepath).INIT()
@@ -23,7 +23,7 @@ def list_dir_of_path(path):
     return [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
 
 
-def read_ocvs_data(datasetpath):
+def read_dataset_data(datasetpath):
     """
     datasetpath: the path of dataset
     返回一个字典 , key是类别, value 是类别数据的相对地址
@@ -58,14 +58,18 @@ def read_class_data(path_array, class_num):
     return arr, class_label
 
 
-def save_npy(arr, class_label, class_name):
-    np.save(f"./npy_data/{class_name}_data.npy", arr)
-    np.save(f"./npy_data/{class_name}_labels.npy", class_label)
+def save_npy(arr, class_label, class_name, path):
+    np.save(f"{path}/{class_name}_data.npy", arr)
+    np.save(f"{path}/{class_name}_labels.npy", class_label)
 
 
 def Read(class_name: str):
+    args = get_args()
+    dataset_name = args.dataset
+    dataset_path = os.path.join(os.getcwd(), "datasets", dataset_name)
     print(f"Reading {class_name} data...")
-    dataset = read_ocvs_data(r"datasets/OCVS")
+    dataset = read_dataset_data(dataset_path)
+    
     class_num = [i for i in dataset.keys()].index(class_name)
     data_arr_path = dataset[class_name]
 

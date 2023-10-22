@@ -14,7 +14,13 @@ from sklearn_hierarchical_classification.classifier import HierarchicalClassifie
 from sklearn_hierarchical_classification.constants import ROOT
 from sklearn_hierarchical_classification.metrics import h_fbeta_score, multi_labeled
 from astrofeatures.astrocluster import Config
+import argparse
 
+def get_args():
+    parser = argparse.ArgumentParser(description="classify")
+    parser.add_argument("-d", "--dataset", type=str, help="Dataset name", default="None")
+
+    return parser.parse_args()
 
 def confusion_matrix(preds, labels, conf_matrix):
     # preds = torch.argmax(preds, 1)
@@ -35,7 +41,7 @@ def str2int_list(l, classes):
 
 
 def plot_confusion_matrix(
-    cm, classes, title, epoch, normalize=False, cmap=plt.cm.Blues
+    cm, classes, title, epoch, dataset_name, normalize=False, cmap=plt.cm.Blues,
 ):
     if normalize:
         cm = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
@@ -78,7 +84,9 @@ def plot_confusion_matrix(
     plt.xlabel("True label")
     # if not os.path.exists('./'+os.path.basename(__file__).replace('.py', '_image/')):
     #     os.makedirs('./'+os.path.basename(__file__).replace('.py', '_image/'))
-    plt.savefig("./result/svm/Confusion_matrix.png", dpi=400, bbox_inches="tight")
+    path = f"./result/{dataset_name}/svm/"
+    print(path)
+    plt.savefig(os.path.join(path,"confusion_matrix.png"), dpi = 400, bbox_inches='tight')
 
 
 def load_umap(path):
@@ -193,8 +201,10 @@ def classify_aiastro():
         base_estimator=base_estimator,
         class_hierarchy=class_hierarchy,
     )
+    args = get_args()
+    path = f"./result/{args.dataset}/umap_cluster/"
 
-    X, y, classes = load_umap("./result/umap_cluster/")
+    X, y, classes = load_umap(path)
     # cast the targets to strings so we have consistent typing of labels across hierarchy
     y = np.array(y).astype(str)
 
@@ -216,7 +226,7 @@ def classify_aiastro():
     conf_matrix = confusion_matrix(y_pred, y_test, conf_matrix)
 
     plot_confusion_matrix(
-        conf_matrix.numpy(), classes=classes, title="", epoch=0, normalize=False
+        conf_matrix.numpy(), classes=classes, title="", epoch=0, normalize=False, dataset_name=args.dataset
     )
     print(classification_report(y_test, y_pred, target_names=classes))
 

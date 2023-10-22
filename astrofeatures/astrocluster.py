@@ -13,6 +13,14 @@ import json
 import subprocess
 import hdbscan
 import yaml
+import argparse
+
+def get_args():
+    parser = argparse.ArgumentParser(description="cluster")
+    parser.add_argument("-d", "--dataset", type=str, help="Dataset name", default="None")
+    return parser.parse_args()
+
+
 
 
 class Config:
@@ -37,7 +45,11 @@ class Config:
 class Astrocluster:
     def __init__(self):
         self.config = Config.instance().cluster_config
-        self.path = os.path.join("./", self.config["data_path"])
+
+        args = get_args()
+        
+        self.path = os.path.join("./npy_data", args.dataset)
+        self.result_path = os.path.join("./result", args.dataset) 
 
         self.data = None
         self.class_name = None
@@ -81,7 +93,7 @@ class Astrocluster:
         self.__reduce_to_20d()
         self.__hdbscan_cluster()
         self.__calculate_purity()
-        self.__save_data("./result/umap_cluster/")
+        self.__save_data(os.path.join(self.result_path, "umap_cluster"))
 
         return self
 
@@ -149,7 +161,7 @@ class Astrocluster:
         ax.set_ylabel("")
         ax.set_xlabel("")
         sns.despine(left=True, right=True, top=True, bottom=True)
-        plt.savefig("./result/visual/umap_origin.png")
+        plt.savefig(os.path.join(self.result_path, "visual/umap_origin.png"))
         # plt.show()
 
     def scatter_gif(self, mode="cluster"):
@@ -193,7 +205,8 @@ class Astrocluster:
             ax.set_xlabel("")
             ax.set_ylabel("")
 
-            plt.savefig(f"./result/visual/temp/{class_name[i]}.png")
+            path = os.path.join(self.result_path, "visual/temp")
+            plt.savefig(f"{path}/{class_name[i]}.png")
             plt.close(fig)
 
         for i in range(len(class_name)):
@@ -201,9 +214,11 @@ class Astrocluster:
 
         images = []
         for i in range(len(class_name)):
-            images.append(imageio.imread(f"./result/visual/temp/{class_name[i]}.png"))
-
-        imageio.mimsave(f"./result/visual/scatter_all_{mode}.gif", images, fps=1)
+            path = os.path.join(self.result_path, "visual/temp")
+            images.append(imageio.imread(f"{path}/{class_name[i]}.png"))
+                          
+        path = os.path.join(self.result_path, "visual")
+        imageio.mimsave(f"{path}/scatter_{mode}.gif", images, fps=1)
 
     def scatter_all(self, mode="cluster"):
         data = self.visual_data
@@ -280,7 +295,8 @@ class Astrocluster:
                 axes[row, j].set_visible(False)
 
         plt.subplots_adjust(wspace=0.1, hspace=0.1)
-        plt.savefig(f"./result/visual/scatter_all_{mode}.png")
+        path = os.path.join(self.result_path, "visual")
+        plt.savefig(f"{path}/scatter_{mode}.png", bbox_inches="tight", dpi=400)
 
     def visualize_cluster_umap(self):
         labels = self.predicted_labels
@@ -306,7 +322,9 @@ class Astrocluster:
         ax.set_yticks([])
         ax.set_ylabel("")
         ax.set_xlabel("")
-        plt.savefig("./result/visual/umap_cluster.png")
+
+        path = os.path.join(self.result_path, "visual")
+        plt.savefig(f"{path}/umap_cluster.png", bbox_inches="tight", dpi=400)
         # plt.show()
 
     def __reduce_to_2d(self):
@@ -382,4 +400,5 @@ class Astrocluster:
             ax=ax,
         )
 
-        plt.savefig("./result/visual/purity.png", dpi=400, bbox_inches="tight")
+        path = os.path.join(self.result_path, "visual")
+        plt.savefig(f"{path}/purity.png", bbox_inches="tight", dpi=400)

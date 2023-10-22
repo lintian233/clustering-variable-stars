@@ -1,9 +1,17 @@
 import astrofeatures.astrocluster as ac
 import numpy as np
 import pandas as pd
+import argparse 
+
+def get_args():
+    parser = argparse.ArgumentParser(description="cluster")
+    parser.add_argument("-d", "--dataset", type=str, help="Dataset name", default="None")
+
+    return parser.parse_args()
 
 
 def purity_table(purity, C_purity):
+
     purity = np.array(purity)
     C_purity = np.array(C_purity)
     class_name = np.unique(C_purity)
@@ -16,10 +24,12 @@ def purity_table(purity, C_purity):
     df = pd.DataFrame(purity_table, index=class_name)
     df.columns = ["Purity"]
     df.index.name = "Class"
+    df["Purity"] = df["Purity"].apply(lambda x: format(x, ".2%"))
     return df
 
 
 def cluster():
+    args = get_args()
     a = ac.Astrocluster().INIT()
 
     a.visualize_origin_umap()
@@ -34,18 +44,10 @@ def cluster():
     purity = a.purity
     C_purity = a.C_class
     table = purity_table(purity, C_purity)
-    pd.DataFrame.to_csv(table, "./result/purity_table.csv")
+    path = f"./result/{args.dataset}/purity_table.csv"
 
-
-def transform_percent(path):
-    df = pd.read_csv(path)
-
-    purity = df["Purity"].apply(lambda x: format(x, ".2%"))
-    class_ = df["Class"]
-    df = pd.DataFrame({"Class": class_, "Purity": purity})
-    df.to_csv(path, index=False)
+    pd.DataFrame.to_csv(table, path, encoding="utf-8-sig")
 
 
 if __name__ == "__main__":
-    # cluster()
-    transform_percent("./result/purity_table.csv")
+    cluster()
