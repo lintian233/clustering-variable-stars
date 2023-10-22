@@ -30,7 +30,7 @@ def print_title():
 
     str_detail = """
     This is a program for clustering and classifying astronomical variable stars.
-    This program is a reproduction of this paper: 
+    This program is a reproduction of this paper: https://arxiv.org/abs/0711.0703
     It is developed by lintian233.
     github:https://github.com/lintian233/clustering-variable-stars
     Please visit the configuration file to modify the hyperparameters when necessary.
