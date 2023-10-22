@@ -1,17 +1,19 @@
 import astrofeatures.astrocluster as ac
 import numpy as np
 import pandas as pd
-import argparse 
+import argparse
+
 
 def get_args():
     parser = argparse.ArgumentParser(description="cluster")
-    parser.add_argument("-d", "--dataset", type=str, help="Dataset name", default="None")
+    parser.add_argument(
+        "-d", "--dataset", type=str, help="Dataset name", default="None"
+    )
 
     return parser.parse_args()
 
 
 def purity_table(purity, C_purity):
-
     purity = np.array(purity)
     C_purity = np.array(C_purity)
     class_name = np.unique(C_purity)

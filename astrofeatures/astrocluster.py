@@ -15,12 +15,13 @@ import hdbscan
 import yaml
 import argparse
 
+
 def get_args():
     parser = argparse.ArgumentParser(description="cluster")
-    parser.add_argument("-d", "--dataset", type=str, help="Dataset name", default="None")
+    parser.add_argument(
+        "-d", "--dataset", type=str, help="Dataset name", default="None"
+    )
     return parser.parse_args()
-
-
 
 
 class Config:
@@ -47,9 +48,9 @@ class Astrocluster:
         self.config = Config.instance().cluster_config
 
         args = get_args()
-        
+
         self.path = os.path.join("./npy_data", args.dataset)
-        self.result_path = os.path.join("./result", args.dataset) 
+        self.result_path = os.path.join("./result", args.dataset)
 
         self.data = None
         self.class_name = None
@@ -216,7 +217,7 @@ class Astrocluster:
         for i in range(len(class_name)):
             path = os.path.join(self.result_path, "visual/temp")
             images.append(imageio.imread(f"{path}/{class_name[i]}.png"))
-                          
+
         path = os.path.join(self.result_path, "visual")
         imageio.mimsave(f"{path}/scatter_{mode}.gif", images, fps=1)
 

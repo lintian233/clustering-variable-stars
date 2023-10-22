@@ -8,8 +8,11 @@ import argparse as ap
 def get_args():
     parser = ap.ArgumentParser(description="Read data from dataset")
     parser.add_argument("-c", "--class_name", type=str, help="Class name")
-    parser.add_argument("-d", "--dataset", type=str, help="Dataset name", default="None")
+    parser.add_argument(
+        "-d", "--dataset", type=str, help="Dataset name", default="None"
+    )
     return parser.parse_args()
+
 
 def get_features(filepath):
     return AF.AstroDataFeatures(filepath).INIT()
@@ -69,7 +72,7 @@ def Read(class_name: str):
     dataset_path = os.path.join(os.getcwd(), "datasets", dataset_name)
     print(f"Reading {class_name} data...")
     dataset = read_dataset_data(dataset_path)
-    
+
     class_num = [i for i in dataset.keys()].index(class_name)
     data_arr_path = dataset[class_name]
 

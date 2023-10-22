@@ -16,11 +16,15 @@ from sklearn_hierarchical_classification.metrics import h_fbeta_score, multi_lab
 from astrofeatures.astrocluster import Config
 import argparse
 
+
 def get_args():
     parser = argparse.ArgumentParser(description="classify")
-    parser.add_argument("-d", "--dataset", type=str, help="Dataset name", default="None")
+    parser.add_argument(
+        "-d", "--dataset", type=str, help="Dataset name", default="None"
+    )
 
     return parser.parse_args()
+
 
 def confusion_matrix(preds, labels, conf_matrix):
     # preds = torch.argmax(preds, 1)
@@ -41,7 +45,13 @@ def str2int_list(l, classes):
 
 
 def plot_confusion_matrix(
-    cm, classes, title, epoch, dataset_name, normalize=False, cmap=plt.cm.Blues,
+    cm,
+    classes,
+    title,
+    epoch,
+    dataset_name,
+    normalize=False,
+    cmap=plt.cm.Blues,
 ):
     if normalize:
         cm = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
@@ -86,7 +96,9 @@ def plot_confusion_matrix(
     #     os.makedirs('./'+os.path.basename(__file__).replace('.py', '_image/'))
     path = f"./result/{dataset_name}/svm/"
     print(path)
-    plt.savefig(os.path.join(path,"confusion_matrix.png"), dpi = 400, bbox_inches='tight')
+    plt.savefig(
+        os.path.join(path, "confusion_matrix.png"), dpi=400, bbox_inches="tight"
+    )
 
 
 def load_umap(path):
@@ -226,7 +238,12 @@ def classify_aiastro():
     conf_matrix = confusion_matrix(y_pred, y_test, conf_matrix)
 
     plot_confusion_matrix(
-        conf_matrix.numpy(), classes=classes, title="", epoch=0, normalize=False, dataset_name=args.dataset
+        conf_matrix.numpy(),
+        classes=classes,
+        title="",
+        epoch=0,
+        normalize=False,
+        dataset_name=args.dataset,
     )
     print(classification_report(y_test, y_pred, target_names=classes))
 
