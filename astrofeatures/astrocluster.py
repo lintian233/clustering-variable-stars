@@ -58,6 +58,10 @@ class Astrocluster:
         self.visual_data = None
         self.traning_data = None
         self.labels = None
+        self.if_classfiy_semi = self.config["if_classfiy_semi"]
+        self.if_visual_semi = self.config["if_visual_semi"]
+        self.percent_semi = self.config["percent_semi"]
+        self.cluster_data = None
 
         self.index = None
         self.ifscale = self.config["ifscale"]
@@ -130,40 +134,28 @@ class Astrocluster:
         self.index = np.cumsum(self.class_len)
 
     def visualize_origin_umap(self):
-        index = self.index
-        data = self.visual_data
+        embedding_visual = self.visual_data
+        labels = self.labels
         class_name = self.class_name
+        node = self.config["node_size"]
 
-        fig, ax = plt.subplots(figsize=(12, 10), dpi=400)
+        fig, ax = plt.subplots(1, figsize=(12, 8), dpi=400)
         fig.patch.set_facecolor("black")
         ax.set_facecolor("black")
-
-        for i in range(len(index)):
-            color = sns.color_palette("Spectral", as_cmap=True)(i / len(index))
-            if i == 0:
-                sc = ax.scatter(
-                    data[: index[i], 0],
-                    data[: index[i], 1],
-                    label=class_name[i],
-                    s=self.config["node_size"],
-                    color=color,
-                )
-            else:
-                ax.scatter(
-                    data[index[i - 1] : index[i], 0],
-                    data[index[i - 1] : index[i], 1],
-                    label=class_name[i],
-                    s=self.config["node_size"],
-                    color=color,
-                )
-        ax.legend()
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.set_ylabel("")
-        ax.set_xlabel("")
-        sns.despine(left=True, right=True, top=True, bottom=True)
-        plt.savefig(os.path.join(self.result_path, "visual/umap_origin.png"))
-        # plt.show()
+        plt.scatter(*embedding_visual.T, s=node, c=labels, cmap="Spectral", alpha=1.0)
+        
+        plt.setp(ax, xticks=[], yticks=[])
+        cbar = plt.colorbar(boundaries=np.arange(21) - 0.5)
+        cbar.set_ticks(np.arange(20))
+        cbar.set_ticklabels(class_name, color="w")
+        # 去除边框
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+        plt.savefig(
+            os.path.join(self.result_path, "visual/umap_origin.png"),
+            bbox_inches="tight",
+            dpi=400,
+        )
 
     def scatter_gif(self, mode="cluster"):
         data = self.visual_data
@@ -207,7 +199,7 @@ class Astrocluster:
             ax.set_ylabel("")
 
             path = os.path.join(self.result_path, "visual/temp")
-            plt.savefig(f"{path}/{class_name[i]}.png")
+            plt.savefig(f"{path}/{class_name[i]}.png", bbox_inches="tight", dpi=200)
             plt.close(fig)
 
         for i in range(len(class_name)):
@@ -329,10 +321,43 @@ class Astrocluster:
         # plt.show()
 
     def __reduce_to_2d(self):
-        self.visual_data = self.reducer_visual.fit_transform(self.data, y=self.labels)
+        labels = self.labels
+        target = labels
+        percent = self.percent_semi
+        data = self.data
+        #UMAP将-1标签解释为未标记的点，并相应地进行学习
+        if self.if_visual_semi:
+            length = len(labels)
+            visual_data = np.zeros((length, 2))
+            index = np.random.choice(length, size= int(percent * length) , replace=False)
+            #除去data index 对应的 index
+            labeled_index = np.delete(np.arange(length), index)
+            visual_data[labeled_index] = self.reducer_visual.fit_transform(data[labeled_index], y=target[labeled_index])
+            visual_data[index] = self.reducer_visual.transform(data[index])
+            self.visual_data = visual_data
+        else:
+            self.visual_data = self.reducer_visual.fit_transform(data, y=target)
 
     def __reduce_to_20d(self):
-        self.traning_data = self.reducer_traning.fit_transform(self.data, y=self.labels)
+        #UMAP将-1标签解释为未标记的点，并相应地进行学习
+        labels = self.labels
+        data = self.data
+        target = labels
+        percent = self.percent_semi
+        if self.if_classfiy_semi:
+            length = len(labels)
+            traning_data = np.zeros((length, self.config["n_components"]))
+            index = np.random.choice(length, size= int(percent * length) , replace=False)
+            labeled_index = np.delete(np.arange(length), index)
+            traning_data[labeled_index] = self.reducer_traning.fit_transform(data[labeled_index], y=target[labeled_index])
+            traning_data[index] = self.reducer_traning.transform(data[index])
+            self.traning_data = traning_data
+            self.cluster_data = self.reducer_traning.fit_transform(data, y=target)
+
+        else:
+            self.cluster_data = self.reducer_traning.fit_transform(data, y=target)
+            self.traning_data = self.reducer_traning.fit_transform(data, y=target)
+        
 
     def __generate_labels(self):
         labels = []

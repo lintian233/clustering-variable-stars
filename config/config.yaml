@@ -8,6 +8,10 @@ cluster_config:
     target_weight: 0.5
     ifscale: 1
 
+    if_classfiy_semi: 1
+    if_visual_semi: 0
+    percent_semi: 0.1
+
     min_cluster_size: 50
     min_samples: 10
     cluster_selection_epsilon: 0.1
