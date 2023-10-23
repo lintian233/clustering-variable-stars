@@ -153,11 +153,6 @@ def check_dir_exist():
     subdir = os.listdir(current_dir)
     subdir = [f for f in subdir if os.path.isdir(os.path.join(current_dir, f))]
 
-    # 检查是否有datasets文件夹
-    if "datasets" not in subdir:
-        print_red("error: dataset not found!", file=sys.stderr)
-        exit(errno.ENOENT)
-
     # 检查config文件夹
     if "config" not in subdir:
         print_red("error: config not found!", file=sys.stderr)
