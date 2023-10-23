@@ -1,0 +1,99 @@
+└─OCVS
+    ├─CEP
+    │  ├─A
+    │  │  ├─I
+    │  │  └─V
+    │  ├─T110
+    │  │  ├─I
+    │  │  └─V
+    │  ├─T120
+    │  │  ├─I
+    │  │  └─V
+    │  ├─T1F
+    │  │  ├─I
+    │  │  └─V
+    │  ├─T1M
+    │  │  ├─I
+    │  │  └─V
+    │  └─T2
+    │      ├─I
+    │      └─V
+    ├─DPV
+    │  └─DPV
+    │      ├─I
+    │      └─V
+    ├─DSCT
+    │  ├─M
+    │  │  ├─I
+    │  │  └─V
+    │  └─S
+    │      ├─I
+    │      └─V
+    ├─ECL
+    │  ├─C
+    │  │  ├─I
+    │  │  └─V
+    │  ├─CV
+    │  │  ├─I
+    │  │  └─V
+    │  ├─ELL
+    │  │  ├─I
+    │  │  └─V
+    │  └─NC
+    │      ├─I
+    │      └─V
+    ├─LPV
+    │  ├─MIRA
+    │  │  ├─I
+    │  │  └─V
+    │  ├─OSARG
+    │  │  ├─I
+    │  │  └─V
+    │  └─SRV
+    │      ├─I
+    │      └─V
+    └─RRLYR
+        ├─RRAB
+        │  ├─I
+        │  └─V
+        ├─RRC
+        │  ├─I
+        │  └─V
+        ├─RRD
+        │  ├─I
+        │  └─V
+        └─RRE
+            ├─I
+            └─V
+
+Note:
+OCVS stands for your dataset name
+The second level directory is the name of each major category
+The third level is the subclass name
+I/V represents the timing data of the I/V band
+the light curve data format:
+file format:xxx.dat
+
+
+time mag err
+
+just like this:
+2162.87556 18.178 0.032
+2171.84219 18.235 0.028
+2184.80107 18.117 0.035
+2188.85166 18.148 0.037
+2200.78375 18.223 0.027
+2206.71887 18.293 0.040
+2223.70766 18.401 0.040
+2226.68378 18.305 0.042
+2228.72752 18.337 0.032
+2230.63910 18.352 0.035
+2232.66085 18.273 0.031
+2238.59811 18.105 0.033
+2240.72462 18.102 0.030
+2242.73553 18.119 0.031
+2244.78625 18.058 0.040
+2249.65455 18.122 0.025
+2253.63852 18.180 0.028
+2256.64702 18.189 0.032
+2262.64674 18.224 0.033

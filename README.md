@@ -7,6 +7,9 @@
 </p>
 
 > This is a reproduction of paper:https://arxiv.org/abs/0711.0703
+> First, you need to obtain the necessary data sets for model training. The data sets can be obtained from the official website of the sky survey project in various places.
+> This project uses the OGLE-III data set: https://ogledb.astrouw.edu.pl/~ogle/CVS/
+> The directory structure template of the dataset is in the datasets folder
 
 ### 🏠 [Homepage](https://github.com/lintian233/clustering-variable-stars)
 

@@ -1,4 +1,4 @@
-datasets/
+datasets/*
 ipy_file/
 visualizations/
 result/
@@ -8,3 +8,4 @@ OGLE-SMC-LPV-11911.dat
 datasets.zip
 .*
 !.gitignore
+!datasets/template.txt
