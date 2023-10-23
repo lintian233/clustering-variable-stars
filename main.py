@@ -194,8 +194,15 @@ def check_feature_exist_and_generate(dataset_name):
         print_green("Do you want to regenerate features? (y/n)")
         choice = input()
         if choice == "y":
-            sp.run(f"rm -rf npy_data/{dataset_name}", shell=True)
-            generate_features(class_name_list, dataset_name)
+            print_red("Warning: all features will be deleted!, continue? (y/n)")
+            choice = input()
+            if choice == "y":
+                sp.run(f"rm -rf npy_data/{dataset_name}", shell=True)
+                generate_features(class_name_list, dataset_name)
+        if choice != "y" and choice != "n":
+            print_red("error: invalid input!", file=sys.stderr)
+            exit(errno.ENOENT)
+
     else:
         # print_green("features may be need a long time to generate!(about 20 hours or more)")
         generate_features(class_name_list, dataset_name)
