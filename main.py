@@ -227,6 +227,7 @@ def main():
     print_green("Checking dataset...")
 
     check_dir_exist()
+
     print_green("Dataset found!")
 
     # 检查是否有features
@@ -256,7 +257,7 @@ def main():
         exit(errno.ENOENT)
 
     print_green("Classifying done!")
-    print_green("all result is in ./result/dataset_name")
+    print_green(f"all results is in ./result/{dataset_name}")
 
 
 if __name__ == "__main__":
