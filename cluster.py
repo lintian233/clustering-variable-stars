@@ -48,7 +48,8 @@ def cluster():
 
     purity = a.purity
     C_purity = a.C_class
-    table = purity_table(purity, C_purity)
+    cluster_num = a.cluster_num
+    table = purity_table(purity, C_purity,cluster_num)
     path = f"./result/{args.dataset}/purity_table.csv"
 
     pd.DataFrame.to_csv(table, path, encoding="utf-8-sig")
