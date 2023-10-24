@@ -13,7 +13,7 @@ def get_args():
     return parser.parse_args()
 
 
-def purity_table(purity, C_purity,cluster_num):
+def purity_table(purity, C_purity, cluster_num):
     purity = np.array(purity)
     C_purity = np.array(C_purity)
     cluster_num = np.array(cluster_num)
@@ -49,7 +49,7 @@ def cluster():
     purity = a.purity
     C_purity = a.C_class
     cluster_num = a.cluster_num
-    table = purity_table(purity, C_purity,cluster_num)
+    table = purity_table(purity, C_purity, cluster_num)
     path = f"./result/{args.dataset}/purity_table.csv"
 
     pd.DataFrame.to_csv(table, path, encoding="utf-8-sig")
