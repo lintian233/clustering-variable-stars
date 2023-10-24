@@ -90,6 +90,7 @@ class Astrocluster:
         self.predicted_labels = None
         self.C_class = None
         self.purity = None
+        self.cluster_num = None
 
     def INIT(self):
         self.__load_data(self.path)
@@ -385,12 +386,14 @@ class Astrocluster:
 
         num = np.unique(labels)
         c_num = np.unique(cluster_labels)
+        cluster_num = []
         purity = []
         C_purity = []
         for i in range(1, len(c_num)):
             # N_w 是属于某个簇的个数
             index = np.where(cluster_labels == c_num[i])
             N_w = len(index[0])
+            cluster_num.append(N_w)
             C = []
             for j in range(1, len(num)):
                 # index 是cluster_labels中属于某个簇，比如簇0的索引
@@ -410,6 +413,7 @@ class Astrocluster:
             C_purity.append(C_max_class)
             P = (1 / N_w) * C_max
             purity.append(P)
+        self.cluster_num = cluster_num
         self.C_class = C_purity
         self.purity = purity
 
@@ -425,7 +429,6 @@ class Astrocluster:
         C_purity = np.array(self.C_class)
 
         df = pd.DataFrame({"Purity": purity, "Class": C_purity})
-
         sns.boxplot(
             x="Purity",
             y="Class",

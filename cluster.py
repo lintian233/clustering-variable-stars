@@ -13,15 +13,18 @@ def get_args():
     return parser.parse_args()
 
 
-def purity_table(purity, C_purity):
+def purity_table(purity, C_purity,cluster_num):
     purity = np.array(purity)
     C_purity = np.array(C_purity)
+    cluster_num = np.array(cluster_num)
     class_name = np.unique(C_purity)
     # print(class_name)
     purity_table = []
     for i in range(len(class_name)):
         index = np.where(C_purity == class_name[i])
-        purity_table.append(np.mean(purity[index]))
+        sepc_num = cluster_num[index]
+        purity_num = purity[index]
+        purity_table.append(np.sum(sepc_num * purity_num) / np.sum(sepc_num))
 
     df = pd.DataFrame(purity_table, index=class_name)
     df.columns = ["Purity"]
