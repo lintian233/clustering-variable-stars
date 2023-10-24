@@ -143,7 +143,7 @@ class Astrocluster:
         fig.patch.set_facecolor("black")
         ax.set_facecolor("black")
         plt.scatter(*embedding_visual.T, s=node, c=labels, cmap="Spectral", alpha=1.0)
-        
+
         plt.setp(ax, xticks=[], yticks=[])
         cbar = plt.colorbar(boundaries=np.arange(21) - 0.5)
         cbar.set_ticks(np.arange(20))
@@ -325,39 +325,49 @@ class Astrocluster:
         target = labels
         percent = self.percent_semi
         data = self.data
-        #UMAP将-1标签解释为未标记的点，并相应地进行学习
+        if_use_target_for_cluster = self.config["if_use_target_for_cluster"]
+        # UMAP将-1标签解释为未标记的点，并相应地进行学习
         if self.if_visual_semi:
             length = len(labels)
             visual_data = np.zeros((length, 2))
-            index = np.random.choice(length, size= int(percent * length) , replace=False)
-            #除去data index 对应的 index
+            index = np.random.choice(length, size=int(percent * length), replace=False)
+            # 除去data index 对应的 index
             labeled_index = np.delete(np.arange(length), index)
-            visual_data[labeled_index] = self.reducer_visual.fit_transform(data[labeled_index], y=target[labeled_index])
+            visual_data[labeled_index] = self.reducer_visual.fit_transform(
+                data[labeled_index], y=target[labeled_index]
+            )
             visual_data[index] = self.reducer_visual.transform(data[index])
             self.visual_data = visual_data
-        else:
+        elif if_use_target_for_cluster:
             self.visual_data = self.reducer_visual.fit_transform(data, y=target)
+        else:
+            self.visual_data = self.reducer_visual.fit_transform(data)
 
     def __reduce_to_20d(self):
-        #UMAP将-1标签解释为未标记的点，并相应地进行学习
+        # UMAP将-1标签解释为未标记的点，并相应地进行学习
         labels = self.labels
         data = self.data
         target = labels
         percent = self.percent_semi
+        if_use_target_for_cluster = self.config["if_use_target_for_cluster"]
+
         if self.if_classfiy_semi:
             length = len(labels)
             traning_data = np.zeros((length, self.config["n_components"]))
-            index = np.random.choice(length, size= int(percent * length) , replace=False)
+            index = np.random.choice(length, size=int(percent * length), replace=False)
             labeled_index = np.delete(np.arange(length), index)
-            traning_data[labeled_index] = self.reducer_traning.fit_transform(data[labeled_index], y=target[labeled_index])
+            traning_data[labeled_index] = self.reducer_traning.fit_transform(
+                data[labeled_index], y=target[labeled_index]
+            )
             traning_data[index] = self.reducer_traning.transform(data[index])
             self.traning_data = traning_data
-            self.cluster_data = self.reducer_traning.fit_transform(data, y=target)
-
         else:
-            self.cluster_data = self.reducer_traning.fit_transform(data, y=target)
             self.traning_data = self.reducer_traning.fit_transform(data, y=target)
-        
+
+        if if_use_target_for_cluster:
+            self.cluster_data = self.reducer_traning.fit_transform(data, y=target)
+        else:
+            self.cluster_data = self.reducer_traning.fit_transform(data)
 
     def __generate_labels(self):
         labels = []
@@ -366,7 +376,7 @@ class Astrocluster:
         self.labels = np.array(labels)
 
     def __hdbscan_cluster(self):
-        self.predicted_labels = self.hdbscan_cluster.fit_predict(self.traning_data)
+        self.predicted_labels = self.hdbscan_cluster.fit_predict(self.cluster_data)
 
     def __calculate_purity(self):
         labels = self.labels
