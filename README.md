@@ -7,7 +7,7 @@
   </a>
 </p>
 
-> This is a reproduction of paper:https://arxiv.org/abs/0711.0703
+> This is a reproduction of paper:https://ui.adsabs.harvard.edu/abs/2022MNRAS.517.3660P/abstract
 > 
 > First, you need to obtain the necessary data sets for model training. The data sets can be obtained from the official website of the sky survey project in various places.
 > 
