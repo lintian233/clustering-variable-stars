@@ -43,22 +43,14 @@ def str2int_list(l, classes):
                 l_int.append(j)
     return np.array(l_int)
 
-
-def plot_confusion_matrix(
-    cm,
-    classes,
-    title,
-    epoch,
-    dataset_name,
-    normalize=False,
-    cmap=plt.cm.Blues,
-):
+def plot_confusion_matrix(cm, classes, title, epoch, dataset_name, normalize=False, cmap=plt.cm.Blues):
+    plt.figure(figsize=(10, 8))  # Adjust figure size here
     if normalize:
-        cm = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis] * 100  # Convert to percentage
         print("Normalized confusion matrix")
     else:
         print("Confusion matrix, without normalization")
-    # print(cm)
+
     plt.imshow(cm, interpolation="nearest", cmap=cmap)
     plt.title(title)
     plt.colorbar()
@@ -66,39 +58,37 @@ def plot_confusion_matrix(
     plt.xticks(tick_marks, classes, rotation=90)
     plt.yticks(tick_marks, classes)
 
-    # 。。。。。。。。。。。。新增代码开始处。。。。。。。。。。。。。。。。
-    # x,y轴长度一致(问题1解决办法）
-    plt.axis("equal")
-    # x轴处理一下，如果x轴或者y轴两边有空白的话(问题2解决办法）
-    ax = plt.gca()  # 获得当前axis
-    left, right = plt.xlim()  # 获得x轴最大最小值
-    ax.spines["left"].set_position(("data", left))
-    ax.spines["right"].set_position(("data", right))
-    for edge_i in ["top", "bottom", "right", "left"]:
-        ax.spines[edge_i].set_edgecolor("white")
-    # 。。。。。。。。。。。。新增代码结束处。。。。。。。。。。。。。。。。
+    # Dynamically adjust font size based on the number of classes
+    if len(classes) < 10:
+        fontsize = "medium"
+    elif len(classes) < 20:
+        fontsize = "small"
+    else:
+        fontsize = "x-small"
 
-    thresh = cm.max() / 2.0
+    thresh = cm.max() / 2.
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-        num = "{:.2f}".format(cm[i, j]) if normalize else int(cm[i, j])
-        plt.text(
-            j,
-            i,
-            num,
-            verticalalignment="center",
-            horizontalalignment="center",
-            color="white" if num > thresh else "black",
-        )
+        if normalize:
+            num = '{:.2f}%'.format(cm[i, j])  # Rounded to one decimal place
+        else:
+            num = '{}'.format(int(cm[i, j]))
+        
+        plt.text(j, i, num, verticalalignment="center", horizontalalignment="center", 
+                 color="white" if cm[i, j] > thresh else "black", fontsize=fontsize)
+
     plt.tight_layout()
-    plt.ylabel("Predicted label")
-    plt.xlabel("True label")
-    # if not os.path.exists('./'+os.path.basename(__file__).replace('.py', '_image/')):
-    #     os.makedirs('./'+os.path.basename(__file__).replace('.py', '_image/'))
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+
+    # Create directory if it does not exist
     path = f"./result/{dataset_name}/svm/"
-    print(path)
-    plt.savefig(
-        os.path.join(path, "confusion_matrix.png"), dpi=400, bbox_inches="tight"
-    )
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    # Save the figure
+    filename = f"confusion_matrix.png"
+    plt.savefig(os.path.join(path, filename), dpi=300, bbox_inches="tight")
+    plt.close()  # Close the plot to free memory
 
 
 def load_umap(path):
@@ -106,7 +96,6 @@ def load_umap(path):
     umap_20d_data = np.load(path + "umap_20d_data.npy")
     true_labels = np.load(path + "true_labels.npy")
 
-    # 生成labels字典
     class_labels_dict = {}
     for i in range(len(class_labels)):
         CEP_OHTHER = ["A", "T2", "T110", "T120"]
@@ -144,19 +133,13 @@ def load_umap(path):
         if class_labels[i] in RRE:
             class_labels_dict[i] = "RRLYR-RRE"
     classes = list(class_labels_dict.values())
-    # 合并相同的值classes:
     classes = list(set(classes))
-    # 生成true_labels字符串列表
 
     true_labels_list = []
     for i in range(len(true_labels)):
         true_labels_list.append(class_labels_dict[true_labels[i]])
 
     return umap_20d_data, true_labels_list, classes
-
-
-# Used for seeding random state
-
 
 def classify_aiastro():
     """
@@ -242,7 +225,7 @@ def classify_aiastro():
         classes=classes,
         title="",
         epoch=0,
-        normalize=False,
+        normalize=True,
         dataset_name=args.dataset,
     )
     print(classification_report(y_test, y_pred, target_names=classes))
