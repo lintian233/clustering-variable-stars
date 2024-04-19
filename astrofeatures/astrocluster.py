@@ -79,6 +79,7 @@ class Astrocluster:
             min_dist=self.config["min_dist"],
             n_components=self.config["n_components"],
             tqdm_kwds={"disable": True},
+            n_jobs = -1
         )
 
         self.hdbscan_cluster = hdbscan.HDBSCAN(
@@ -95,7 +96,9 @@ class Astrocluster:
 
         self.specatur_cluster = SpectralClustering(
             n_clusters=20,
-            random_state=42,
+            affinity='nearest_neighbors',
+            n_jobs = -1,
+            assign_labels='discretize'
         )
         self.predicted_labels_spectral = None
 
@@ -106,7 +109,7 @@ class Astrocluster:
         self.__reduce_to_20d()
         self.__spectural_cluster()
         self.__hdbscan_cluster()
-        self.__calculate_purity()
+        # self.calculate_purity()
 
         self.__save_data(os.path.join(self.result_path, "umap_cluster"))
 
@@ -146,7 +149,7 @@ class Astrocluster:
         self.index = np.cumsum(self.class_len)
 
     def __spectural_cluster(self):
-        self.predicted_labels = self.specatur_cluster.fit_predict(self.traning_data)
+        self.predicted_labels_spectral = self.specatur_cluster.fit_predict(self.traning_data)
 
     # def visualize_spectural_cluster(self):
     #     self.__spectural_cluster()
@@ -264,6 +267,7 @@ class Astrocluster:
         _row = 4
         r = np.mod(length, _row)
         col = int(length / _row)
+        print(f"currentmod:{mode} :cow:{_row}col:{col}")
         if r != 0:
             col += 1
         currenti = 0
@@ -285,6 +289,7 @@ class Astrocluster:
             spec_data = pd.DataFrame(data[index], columns=["x", "y"])
 
             # axes[row, j].set_facecolor("black")
+            # print(row,j)
             sns.scatterplot(
                 x="x",
                 y="y",
@@ -434,10 +439,12 @@ class Astrocluster:
     def __hdbscan_cluster(self):
         self.predicted_labels = self.hdbscan_cluster.fit_predict(self.cluster_data)
 
-    def __calculate_purity(self):
+    def calculate_purity(self, cluster_labels):
+
         labels = self.labels
-        cluster_labels = self.predicted_labels
+        # cluster_labels = self.predicted_labels
         class_name = self.class_name
+        
 
         num = np.unique(labels)
         c_num = np.unique(cluster_labels)
@@ -450,7 +457,7 @@ class Astrocluster:
             N_w = len(index[0])
             cluster_num.append(N_w)
             C = []
-            for j in range(1, len(num)):
+            for j in range(0, len(num)):
                 # index 是cluster_labels中属于某个簇，比如簇0的索引
                 index = np.where(cluster_labels == c_num[i])
                 # cluster_labels_sub 是属于某个簇的真实标签
@@ -472,7 +479,9 @@ class Astrocluster:
         self.C_class = C_purity
         self.purity = purity
 
-    def plot_purity(self):
+        return purity, C_purity, cluster_num
+
+    def plot_purity(self, name, purity, C_purity):
         sns.set_theme(style="ticks")
 
         # Initialize the figure with a logarithmic x axis
@@ -480,19 +489,20 @@ class Astrocluster:
         # ax.set_xscale("log")
         ax.set_xlim(0, 1)
 
-        purity = np.array(self.purity)
-        C_purity = np.array(self.C_class)
+        purity = np.array(purity)
+        C_purity = np.array(C_purity)
 
         df = pd.DataFrame({"Purity": purity, "Class": C_purity})
+        #大小为0.5箱子
         sns.boxplot(
             x="Purity",
             y="Class",
             data=df,
             whis=[0, 100],
-            width=0.3,
+            width=0.1,
             color="#e0ffff",
             ax=ax,
         )
 
         path = os.path.join(self.result_path, "visual")
-        plt.savefig(f"{path}/purity.png", bbox_inches="tight", dpi=400)
+        plt.savefig(f"{path}/purity_{name}.png", bbox_inches="tight", dpi=400)

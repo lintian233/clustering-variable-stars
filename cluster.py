@@ -45,14 +45,23 @@ def cluster():
 
     a.scatter_gif(mode="cluster")
     a.scatter_gif(mode="origin")
-    a.plot_purity()
 
-    purity = a.purity
-    C_purity = a.C_class
-    cluster_num = a.cluster_num
+    purity, C_purity, cluster_num = a.calculate_purity(a.predicted_labels)
+    a.plot_purity("cluster", purity, C_purity)
+
+    spectural_purity, c_spectural_purity, spectural_num = a.calculate_purity(a.predicted_labels_spectral)
+    a.plot_purity("spectural", spectural_purity, c_spectural_purity)
+
+    # purity = a.purity
+    # C_purity = a.C_class
+    # cluster_num = a.cluster_num
     table = purity_table(purity, C_purity, cluster_num)
     path = f"./result/{args.dataset}/purity_table.csv"
 
+    spectable = purity_table(spectural_purity, c_spectural_purity, spectural_num)
+    spectural_path = f"./result/{args.dataset}/spectural_purity_table.csv"
+
+    pd.DataFrame.to_csv(spectable, spectural_path, encoding="utf-8-sig")
     pd.DataFrame.to_csv(table, path, encoding="utf-8-sig")
 
 
