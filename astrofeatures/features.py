@@ -28,7 +28,7 @@ class OlgeFeatures:
     def init(self):
         self.time, self.mag = self._read_table()
         self.power = self._lomb_scargle()
-        self._allis_filter()
+        self.frequency, self.power = self._allis_filter(self.frequency, self.power)
         freq_index = self._get_indexof_log_span(self.frequency, 10)
         freq_index.insert(0, 0)
         self.peaks = self._find_peak_of_index(self.power, freq_index)
@@ -55,8 +55,21 @@ class OlgeFeatures:
                 right = mid - 1
         return left
 
-    def _allis_filter(self):
-        pass
+    def _allis_filter(self, frequency=None, power=None):
+        # 移除合月周期的别名
+        synodic_month_freq = 0.0809  # 合月周期频率，单位d^-1
+        moon_alias_mask = np.abs(frequency - synodic_month_freq) > 0.001
+        frequency = frequency[moon_alias_mask]
+        power = power[moon_alias_mask]
+
+        # 移除恒星日周期的别名
+        for day_alias in range(1, 25):  # 考虑直到24倍的日频率
+            day_freq = day_alias * 1.0  # 恒星日频率的倍数
+            day_alias_mask = np.abs(frequency - day_freq) > 0.05
+            frequency = frequency[day_alias_mask]
+            power = power[day_alias_mask]
+
+        return frequency, power
 
     def _get_indexof_log_span(self, data, bin):
         log_end = np.log10(data[-1] - data[1000])

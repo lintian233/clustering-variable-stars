@@ -40,6 +40,7 @@ def cluster():
     a.visualize_origin_umap()
     a.scatter_all(mode="cluster")
     a.scatter_all(mode="origin")
+    a.scatter_all(mode="spectural")
     a.visualize_cluster_umap()
 
     a.scatter_gif(mode="cluster")

@@ -2,17 +2,18 @@ cluster_config:
     # Path to the data folder
     data_path: "./npy_data/"
 
-    n_neighbors: 30
+    n_neighbors: 40
     n_components: 20
     min_dist: 0
     target_weight: 0.5
     ifscale: 1
 
-    if_classfiy_semi: 1
+    if_classfiy_semi:  1
+
     if_visual_semi: 0
     if_use_target_for_cluster: 0
 
-    percent_semi: 0
+    percent_semi: 0.7
 
     min_cluster_size: 70
     min_samples: 1

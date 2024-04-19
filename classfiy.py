@@ -3,7 +3,7 @@ import torch
 import numpy as np
 from sklearn import svm
 from sklearn.decomposition import TruncatedSVD
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, precision_recall_fscore_support
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
 import matplotlib.pyplot as plt
@@ -76,6 +76,9 @@ def plot_confusion_matrix(cm, classes, title, epoch, dataset_name, normalize=Fal
         plt.text(j, i, num, verticalalignment="center", horizontalalignment="center", 
                  color="white" if cm[i, j] > thresh else "black", fontsize=fontsize)
 
+    for edge, spine in plt.gca().spines.items():
+        spine.set_visible(False)
+        
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
@@ -168,6 +171,10 @@ def classify_aiastro():
     }
 
     config = Config.instance().classfiy_config
+    cluster_config = Config.instance().cluster_config
+
+    percent = cluster_config["percent_semi"]
+
 
     RANDOM_STATE = config["random_state"]
     basesvm = svm.SVC(
@@ -229,6 +236,23 @@ def classify_aiastro():
         dataset_name=args.dataset,
     )
     print(classification_report(y_test, y_pred, target_names=classes))
+
+    precision, recall, f1, _ = precision_recall_fscore_support(y_test, y_pred, average=None)
+    #save precision, recall, f1
+
+    path = f"./result/{args.dataset}/svm/"
+    file = "precision_recall_f1.csv"
+
+    if not os.path.exists(path + file):
+        with open(path + file, "w") as f:
+            f.write("class,precision,recall,f1,percent\n")
+    
+    with open(path + file, "a") as f:
+        for i in range(len(classes)):
+            f.write(f"{classes[i]},{precision[i]},{recall[i]},{f1[i]},{percent}\n")
+    
+    f.close()
+
 
 
 if __name__ == "__main__":

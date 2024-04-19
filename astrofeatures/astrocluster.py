@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import SpectralClustering
 import matplotlib.animation as animation
 import imageio
 import matplotlib.pyplot as plt
@@ -92,16 +93,26 @@ class Astrocluster:
         self.purity = None
         self.cluster_num = None
 
+        self.specatur_cluster = SpectralClustering(
+            n_clusters=20,
+            random_state=42,
+        )
+        self.predicted_labels_spectral = None
+
     def INIT(self):
         self.__load_data(self.path)
         self.__generate_labels()
         self.__reduce_to_2d()
         self.__reduce_to_20d()
+        self.__spectural_cluster()
         self.__hdbscan_cluster()
         self.__calculate_purity()
+
         self.__save_data(os.path.join(self.result_path, "umap_cluster"))
 
         return self
+    
+    
 
     def __save_data(self, path):
         np.save(os.path.join(path, "raw_data.npy"), self.data)
@@ -110,7 +121,7 @@ class Astrocluster:
         np.save(os.path.join(path, "umap_visual_data.npy"), self.visual_data)
         np.save(os.path.join(path, "umap_20d_data.npy"), self.traning_data)
         np.save(os.path.join(path, "hdbscan_cluster_labels.npy"), self.predicted_labels)
-
+        
     def __load_data(self, path):
         file_name = []
         dataset = []
@@ -134,6 +145,14 @@ class Astrocluster:
         self.class_len = class_len
         self.index = np.cumsum(self.class_len)
 
+    def __spectural_cluster(self):
+        self.predicted_labels = self.specatur_cluster.fit_predict(self.traning_data)
+
+    # def visualize_spectural_cluster(self):
+    #     self.__spectural_cluster()
+    #     self.scatter_all(mode="cluster")
+    #     self.scatter_gif(mode="cluster")
+
     def visualize_origin_umap(self):
         embedding_visual = self.visual_data
         labels = self.labels
@@ -141,14 +160,17 @@ class Astrocluster:
         node = self.config["node_size"]
 
         fig, ax = plt.subplots(1, figsize=(12, 8), dpi=400)
-        fig.patch.set_facecolor("black")
-        ax.set_facecolor("black")
+        # fig.patch.set_facecolor("black")
+        fig.patch.set_facecolor("white")
+        # ax.set_facecolor("black")
+        ax.set_facecolor("white")
+
         plt.scatter(*embedding_visual.T, s=node, c=labels, cmap="Spectral", alpha=1.0)
 
         plt.setp(ax, xticks=[], yticks=[])
         cbar = plt.colorbar(boundaries=np.arange(21) - 0.5)
         cbar.set_ticks(np.arange(20))
-        cbar.set_ticklabels(class_name, color="w")
+        cbar.set_ticklabels(class_name, color="black")
         # 去除边框
         for spine in ax.spines.values():
             spine.set_visible(False)
@@ -176,8 +198,11 @@ class Astrocluster:
 
         def update(i):
             fig, ax = plt.subplots(figsize=(12, 8), dpi=200)
-            fig.patch.set_facecolor("black")
-            ax.set_facecolor("black")
+            # fig.patch.set_facecolor("black")
+            # ax.set_facecolor("black")
+            ax.set_facecolor("white")
+            ax.patch.set_facecolor("white")
+
             all_data = pd.DataFrame(data, columns=["x", "y"])
             index = np.where(labels == class_name[i])
             if (mode == "compare") or (mode == "origin"):
@@ -230,6 +255,10 @@ class Astrocluster:
             class_name = self.class_name
             labels = self.predicted_labels
 
+        if mode == "spectural":
+            class_name = np.unique(self.predicted_labels_spectral)
+            labels = self.predicted_labels_spectral
+
         # sns.set_style("dark")
         length = len(class_name)
         _row = 4
@@ -240,7 +269,8 @@ class Astrocluster:
         currenti = 0
         print(f"row : {_row}, col : {col}")
         fig, axes = plt.subplots(_row, col, figsize=(15, 10), dpi=400)
-        fig.patch.set_facecolor("black")
+        # fig.patch.set_facecolor("black")
+        fig.patch.set_facecolor("white")
         for i in range(len(class_name)):
             currenti = i
             j = np.mod(i, col)
@@ -254,7 +284,7 @@ class Astrocluster:
 
             spec_data = pd.DataFrame(data[index], columns=["x", "y"])
 
-            axes[row, j].set_facecolor("black")
+            # axes[row, j].set_facecolor("black")
             sns.scatterplot(
                 x="x",
                 y="y",
@@ -276,7 +306,7 @@ class Astrocluster:
             )
 
             sns.despine(left=True, right=True, top=True, bottom=True)
-            axes[row, j].set_title(class_name[i], color="white")
+            axes[row, j].set_title(class_name[i], color="black")
             axes[row, j].set_xticks([])
             axes[row, j].set_yticks([])
             axes[row, j].set_xlabel("")
@@ -299,8 +329,8 @@ class Astrocluster:
 
         num = np.unique(labels)
         fig, ax = plt.subplots(figsize=(12, 10), dpi=400)
-        fig.patch.set_facecolor("black")
-        ax.set_facecolor("black")
+        # fig.patch.set_facecolor("black")
+        # ax.set_facecolor("black")
 
         squares = []
         for i in range(len(num)):
@@ -322,12 +352,23 @@ class Astrocluster:
         # plt.show()
 
     def __reduce_to_2d(self):
+        """
+        如果if_visual_semi为True，
+        那么采用半监督学习的方式进行数据的降维和可视化处理。
+        这里通过随机选择一定比例(percent)的数据作为标记数据，其余作为未标记数据。
+        使用UMAP的fit_transform方法对标记数据进行降维，并将结果存储在visual_data变量中。
+        然后，对未标记数据使用transform方法进行降维。
+        如果if_use_target_for_cluster为True，那么使用所有数据和其标签(target)进行UMAP降维，
+        并将结果存储在visual_data中。
+        否则，仅使用数据进行无监督的UMAP降维。
+        """
         labels = self.labels
         target = labels
         percent = self.percent_semi
         data = self.data
         if_use_target_for_cluster = self.config["if_use_target_for_cluster"]
         # UMAP将-1标签解释为未标记的点，并相应地进行学习
+        
         if self.if_visual_semi:
             length = len(labels)
             visual_data = np.zeros((length, 2))
@@ -345,6 +386,16 @@ class Astrocluster:
             self.visual_data = self.reducer_visual.fit_transform(data)
 
     def __reduce_to_20d(self):
+        """
+        当if_classfiy_semi为True时，方法执行半监督学习的过程。
+        首先，根据percent确定哪些数据点被视为有标签数据，
+        然后对这部分数据进行UMAP降维（fit_transform），而剩余的数据点则通过transform进行降维，
+        这样可以在保留数据全局结构的同时，对有标签的数据进行特别的处理。
+        如果if_classfiy_semi为False，那么对所有数据点进行统一的降维处理，不区分有标签和无标签数据。
+        if_use_target_for_cluster为True时，降维过程会考虑target进行聚类优化，
+        否则仅根据数据本身特性进行无监督的降维。
+
+        """
         # UMAP将-1标签解释为未标记的点，并相应地进行学习
         labels = self.labels
         data = self.data
@@ -352,7 +403,9 @@ class Astrocluster:
         percent = self.percent_semi
         if_use_target_for_cluster = self.config["if_use_target_for_cluster"]
 
+        # if_classfiy_semi 为True时，使用半监督学习
         if self.if_classfiy_semi:
+            #
             length = len(labels)
             traning_data = np.zeros((length, self.config["n_components"]))
             index = np.random.choice(length, size=int(percent * length), replace=False)
@@ -363,8 +416,10 @@ class Astrocluster:
             traning_data[index] = self.reducer_traning.transform(data[index])
             self.traning_data = traning_data
         else:
+            #监督学习
             self.traning_data = self.reducer_traning.fit_transform(data, y=target)
 
+        # if_use_target_for_cluster 为True时，使用target进行聚类
         if if_use_target_for_cluster:
             self.cluster_data = self.reducer_traning.fit_transform(data, y=target)
         else:
