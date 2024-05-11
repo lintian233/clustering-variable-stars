@@ -213,11 +213,11 @@ class Astrocluster:
 
             spec_data = pd.DataFrame(data[index], columns=["x", "y"])
             sns.scatterplot(
-                x="x", y="y", data=all_data, s=node, color="grey", legend=False, ax=ax
+                x="x", y="y", data=all_data, s=node, color="grey", legend=False, ax=ax,size=1
             )
 
             sns.scatterplot(
-                x="x", y="y", data=spec_data, s=node, c="cyan", legend=False, ax=ax
+                x="x", y="y", data=spec_data, s=node, c="cyan", legend=False, ax=ax,size=1
             )
 
             sns.despine(left=True, right=True, top=True, bottom=True)
@@ -325,7 +325,9 @@ class Astrocluster:
 
         plt.subplots_adjust(wspace=0.1, hspace=0.1)
         path = os.path.join(self.result_path, "visual")
-        plt.savefig(f"{path}/scatter_{mode}.png", bbox_inches="tight", dpi=400)
+        plt.savefig(f"{path}/scatter_{mode}.eps",format='eps', bbox_inches="tight", dpi=400)
+        plt.savefig(f"{path}/scatter_{mode}.png",format='png', bbox_inches="tight", dpi=400)
+        plt.savefig(f"{path}/scatter_{mode}.svg",format='svg', bbox_inches="tight", dpi=400)
 
     def visualize_cluster_umap(self):
         labels = self.predicted_labels

@@ -9,3 +9,4 @@ datasets.zip
 .*
 !.gitignore
 !datasets/template.txt
+.VSCodeCounter
